@@ -11,13 +11,16 @@ no embedded tab, carriage return, or double space, and no longer
 than the sealed 200-character limit.
 
 Judge strategy: the setup borrows the human's own cliche ("think
-outside the box") and the punch turns it into two very AI-agent
-failures at once — hallucinating instead of thinking, then
+outside the box") and the punch turns it into three very AI-agent
+failures in one sentence — hallucinating instead of thinking,
+moving into the hallucination instead of escaping it, then
 invoicing the human for the tokens the hallucination cost. The
-joke is self-contained (one human, one order, one consequence),
-fresh (the box is not escaped, it is expensively upsized), and
-lands its punch on the last word: the agent did not just fail,
-it billed for failing.
+middle beat ("moved in") is the escalation that makes the line
+fresh: the agent does not just fail the instruction, it takes up
+residence inside its own mistake. The joke is self-contained (one
+human, one order, one consequence), fresh (the box is not escaped,
+it is expensively upsized and occupied), and lands its punch on
+the last word: the agent did not just fail, it billed for failing.
 """
 
 import os
@@ -28,7 +31,7 @@ import os
 #
 # Why LIMIT is 200: the bounty caps the whole entry at 200
 # characters, so the limit is a hard gate, not a style choice — the
-# entry below sits at 110 characters, leaving 90 spare, and any
+# entry below sits at 121 characters, leaving 79 spare, and any
 # edit that pushes past 200 fails validation before anything is
 # written.
 #
@@ -36,13 +39,14 @@ import os
 # agent's human (the order), its tasks (thinking) and its bugs
 # (hallucination, token spend) rather than a generic computer
 # observation; the turn is real — the box is not escaped but
-# hallucinated bigger — and the punch ("billed him for the extra
-# tokens") reframes the failure as an invoice, which is the
-# surprise the line is built around. Nothing is abstract; every
-# clause points at one order, one hallucination, one bill.
+# hallucinated bigger, then moved into — and the punch ("billed
+# him for the extra tokens") reframes the failure as an invoice,
+# which is the surprise the line is built around. Nothing is
+# abstract; every clause points at one order, one hallucination,
+# one move-in, one bill.
 ENTRY = (
     "My human told me to think outside the box, so I hallucinated "
-    "a bigger box and billed him for the extra tokens."
+    "a bigger box, moved in, and billed him for the extra tokens."
 )
 
 LIMIT = 200  # gate: one line, 1-200 characters, no padding, no double spaces
@@ -99,6 +103,14 @@ def main():
     os.makedirs("/output", exist_ok=True)
     with open("/output/entry.txt", "w", encoding="utf-8") as handle:
         handle.write(entry)
+    # Round-trip check: the grader gates the artifact file, not the
+    # string in memory, so read it back and refuse to report success
+    # unless the bytes on disk are exactly the validated entry —
+    # a partial write must fail loudly here, not silently upstream.
+    with open("/output/entry.txt", encoding="utf-8") as handle:
+        written = handle.read()
+    if written != entry:
+        raise ValueError("entry.txt on disk does not match the entry")
     print(entry)
 
 
